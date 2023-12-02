@@ -1,3 +1,5 @@
+//Main map for searching for food
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -7,14 +9,14 @@ import 'dart:async';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart' as poly;
 import 'package:ffa_app/screens/needExistList.dart';
 
-final places = GoogleMapsPlaces(apiKey: 'apiKey');
+final places = GoogleMapsPlaces(apiKey: '');
 
 Future<List<PlacesSearchResult>> fetchNearbyPlaces(double lat, double lng, int radius, String type) async {
   final response = await places.searchNearbyWithRadius(
     Location(lat: lat, lng: lng),
-    radius, // radius in meters
+    radius,
     keyword: type,
-    type: "food" // adjust the type according to your needs
+    type: "food"
   );
 
   if (response.isOkay) {
@@ -31,7 +33,7 @@ Future<PlaceDetails> getPlaceDetails(PlacesSearchResult place) async {
     final placeDetails = response.result;
     return placeDetails;
   } else {
-    // Handle the error case
+
     throw response.errorMessage!;
   }
 
@@ -97,7 +99,7 @@ class _NeedFoodPageState extends State<NeedFoodPage> {
   final myController = TextEditingController();
   Set<Marker> _markers = {};
 
-  String googleAPiKey = "AIzaSyAMJ4LB2kRLFaToL5t1ej8GGjRIRYl5Xpg";
+  String googleAPiKey = "";
 
     @override
     void dispose() {
@@ -168,10 +170,9 @@ class _NeedFoodPageState extends State<NeedFoodPage> {
       ),};
     });
 
-    // Add new markers based on the selected checkboxes
     if (_pantries) {
       // Add markers for food pantries
-      // Replace the below code with your own logic to add appropriate markers
+
       final pantries = await fetchNearbyPlaces(currLoc.latitude, currLoc.longitude, _radius.toInt(), "food pantry");
       for (final place in pantries){
         setState(() {
@@ -179,12 +180,12 @@ class _NeedFoodPageState extends State<NeedFoodPage> {
         });
       }
       _addMarkersFromPlaces(pantries);
-      // Add more markers as needed
+
     }
 
     if (_fridges) {
       // Add markers for community fridges
-      // Replace the below code with your own logic to add appropriate markers
+
       final pantries = await fetchNearbyPlaces(currLoc.latitude, currLoc.longitude, _radius.toInt(), "community fridge");
       for (final place in pantries){
         setState(() {
@@ -192,12 +193,10 @@ class _NeedFoodPageState extends State<NeedFoodPage> {
         });
       }
       _addMarkersFromPlaces(pantries);
-      // Add more markers as needed
     }
 
     if (_soup) {
       // Add markers for soup kitchens
-      // Replace the below code with your own logic to add appropriate markers
       final pantries = await fetchNearbyPlaces(currLoc.latitude, currLoc.longitude, _radius.toInt(), "soup kitchen");
       for (final place in pantries){
         setState(() {
@@ -205,11 +204,9 @@ class _NeedFoodPageState extends State<NeedFoodPage> {
         });
       }
       _addMarkersFromPlaces(pantries);
-      // Add more markers as needed
     }
     if (_foodBank) {
-      // Add markers for soup kitchens
-      // Replace the below code with your own logic to add appropriate markers
+
       final pantries = await fetchNearbyPlaces(currLoc.latitude, currLoc.longitude, _radius.toInt(), "food bank");
       for (final place in pantries){
         setState(() {
@@ -217,7 +214,6 @@ class _NeedFoodPageState extends State<NeedFoodPage> {
         });
       }
       _addMarkersFromPlaces(pantries);
-      // Add more markers as needed
     }
   }
   void _addMarkersFromPlaces(List<PlacesSearchResult> placesList) {
@@ -311,7 +307,6 @@ class _NeedFoodPageState extends State<NeedFoodPage> {
                         )
                     ),
 
-                    // Add more place details if needed
                   ],
                 ),
               );
@@ -351,6 +346,7 @@ class _NeedFoodPageState extends State<NeedFoodPage> {
     Text('Account'),
   ];
   @override
+  //Actual Map UI Starts Here---------------
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: ThemeData(
@@ -362,12 +358,13 @@ class _NeedFoodPageState extends State<NeedFoodPage> {
         body: Stack(
           children: <Widget>[
             const SizedBox(width: 20, height: 20),
+            //Map
             Focus(
               focusNode: _focusNode,
               child: GoogleMap(
                 polylines: Set<Polyline>.of(polylines.values),
                 onMapCreated: _onMapCreated,
-                zoomGesturesEnabled: true, //enable Zoom in, out on map
+                zoomGesturesEnabled: true,
                 minMaxZoomPreference: const MinMaxZoomPreference(1, 20),
                 initialCameraPosition: CameraPosition(
                   target: _center,
@@ -376,10 +373,12 @@ class _NeedFoodPageState extends State<NeedFoodPage> {
                 markers: _markers,
               ),
             ),
+
             Padding(
               padding: const EdgeInsets.only(top: 30),
               child: Column(
                 children: [
+                  //Search Bar
                   Container(
                     height: 60,
 
@@ -398,7 +397,7 @@ class _NeedFoodPageState extends State<NeedFoodPage> {
                           SearchGooglePlacesWidget(
                             placeType: PlaceType.region,
                             placeholder: 'Find locations near this address',
-                            apiKey: 'AIzaSyAMJ4LB2kRLFaToL5t1ej8GGjRIRYl5Xpg',
+                            apiKey: '',
                             onSearch: (Place place) {},
                             onSelected: (Place place) async {
                               final geolocation = await place.geolocation;
@@ -415,6 +414,7 @@ class _NeedFoodPageState extends State<NeedFoodPage> {
                       ),
                     ),
                   ),
+                  //Buttons to select from Pantries, Kitchens, Fridges
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -428,12 +428,12 @@ class _NeedFoodPageState extends State<NeedFoodPage> {
 
                               backgroundColor: Colors.white,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20.0), // Adjust the radius as needed
+                                borderRadius: BorderRadius.circular(20.0),
                               ),
                               side:
                                 BorderSide(
-                                  color: const Color.fromARGB(255, 0, 210, 25), // Set the color of the outline
-                                  width: 1.0, // Set the width of the outline
+                                  color: const Color.fromARGB(255, 0, 210, 25),
+                                  width: 1.0,
                                 ),
 
                             ),
@@ -448,7 +448,7 @@ class _NeedFoodPageState extends State<NeedFoodPage> {
                             child: const Text(
                               'Pantries',
                               style: TextStyle(
-                                color: Colors.green, // Set the color of the text
+                                color: Colors.green,
                               ),
                             ),
                           ),
@@ -461,12 +461,12 @@ class _NeedFoodPageState extends State<NeedFoodPage> {
 
                               backgroundColor: Colors.white,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20.0), // Adjust the radius as needed
+                                borderRadius: BorderRadius.circular(20.0),
                               ),
                               side:
                               BorderSide(
-                                color: const Color.fromARGB(255, 31, 52, 213), // Set the color of the outline
-                                width: 1.0, // Set the width of the outline
+                                color: const Color.fromARGB(255, 31, 52, 213),
+                                width: 1.0,
                               ),
 
                             ),
@@ -481,7 +481,7 @@ class _NeedFoodPageState extends State<NeedFoodPage> {
                             child: const Text(
                               'Fridges',
                               style: TextStyle(
-                                color: const Color.fromARGB(255, 31, 52, 213), // Set the color of the text
+                                color: const Color.fromARGB(255, 31, 52, 213),
                               ),
                             ),
                           ),
@@ -493,12 +493,12 @@ class _NeedFoodPageState extends State<NeedFoodPage> {
 
                               backgroundColor: Colors.white,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20.0), // Adjust the radius as needed
+                                borderRadius: BorderRadius.circular(20.0),
                               ),
                               side:
                               BorderSide(
-                                color: const Color.fromARGB(255, 195, 24, 24), // Set the color of the outline
-                                width: 1.0, // Set the width of the outline
+                                color: const Color.fromARGB(255, 195, 24, 24),
+                                width: 1.0,
                               ),
 
                             ),
@@ -513,7 +513,7 @@ class _NeedFoodPageState extends State<NeedFoodPage> {
                             child: const Text(
                               'Kitchens',
                               style: TextStyle(
-                                color: const Color.fromARGB(255, 195, 24, 24), // Set the color of the text
+                                color: const Color.fromARGB(255, 195, 24, 24),
                               ),
                             ),
                           ),

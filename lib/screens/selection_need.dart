@@ -1,7 +1,11 @@
+//With the user of a bottom bar, this page is likely no longer necessary.
+//This page served as a placeholder way to get into the listings display.
+
 import 'organization.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'needExistList.dart';
+
 
 final hintFont = GoogleFonts.poiretOne(
   color: const Color.fromARGB(255, 101, 101, 101),
@@ -18,8 +22,8 @@ final containerDecor = BoxDecoration(
   border: Border.all(
     color: Colors.black,
     width: 2,
-  ), // Thicker black border
-  borderRadius: BorderRadius.circular(10), // Increased border radius
+  ),
+  borderRadius: BorderRadius.circular(10),
 );
 
 class SelectionFormPage extends StatefulWidget {

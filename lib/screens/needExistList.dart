@@ -1,3 +1,5 @@
+//This page displays a list of the most recent posts made by organizations that have excess food.
+
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -5,11 +7,11 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:ffa_app/main.dart';
 import 'package:ffa_app/screens/need_food_map.dart';
+
+
 FirebaseDatabase database = FirebaseDatabase.instance;
 
-
-
-
+//Function to get 10 most recent posts
 Future<List<String>> retrieveRecents() async {
   List<String> postIDs = [];
 
@@ -26,6 +28,7 @@ Future<List<String>> retrieveRecents() async {
   return postIDs;
 }
 
+//Function to get list all Perishables/Nonperishables/Prepareds from a specific post
 Future<List<List<String>>> retrieveAll(String id, String allWhat) async {
   List<List<String>> myList = [[], []];
 
@@ -61,7 +64,7 @@ Future<List<List<String>>> retrieveAll(String id, String allWhat) async {
 
   return myList;
 }
-
+//Get information of a user from a user id
 Future<String> retrieveUserInformation(String id, String path) async {
   try {
     final snapshot =
@@ -72,7 +75,7 @@ Future<String> retrieveUserInformation(String id, String path) async {
     return 'Error: Unable to retrieve user information';
   }
 }
-
+//Get user information given a post id
 Future<String> retrieveUserInformationFromPost(String id, String path) async{
   try {
     final snapshot =
@@ -85,7 +88,7 @@ Future<String> retrieveUserInformationFromPost(String id, String path) async{
     return 'Error: Unable to information';
   }
 }
-
+//Where each post is displayed
 class existingListings extends StatefulWidget {
   final String? selectedValue;
 
@@ -97,6 +100,7 @@ class existingListings extends StatefulWidget {
 
 class _existingListingsState extends State<existingListings> {
   List<String> LoadedPosts = [];
+  //Load posts
   refresh() async{
     List<String> recentPostIDs = await retrieveRecents();
 
@@ -112,9 +116,9 @@ class _existingListingsState extends State<existingListings> {
     refresh();
   }
 
-
+  //_selectedIndex for bottom bar
   int _selectedIndex = 1;
-
+  //Text for bottom bar
   static const List<Widget> _widgetOptions = <Widget>[
     Text('Maps'),
     Text('Show Listings'),
@@ -137,6 +141,7 @@ class _existingListingsState extends State<existingListings> {
         body: Center(
           child: Column(
             children: [
+              //Refresh button to update listings
               ElevatedButton(
                 onPressed: () async {
                   List<String> recentPostIDs = await retrieveRecents();
@@ -149,14 +154,15 @@ class _existingListingsState extends State<existingListings> {
                 child: Text("Refresh"),
               ),
               Expanded(
+                //Posts are displayed inside of the ListView widget
                 child: ListView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 15),
                   itemCount: LoadedPosts.length,
                   itemBuilder: (context, index) {
                     Future<String> userInfoFuture = retrieveUserInformation(
-                        'UGLc5x02UabhgqiBhZvYzKUId262',
+                        'UGLc5x02UabhgqiBhZvYzKUId262', //Temporarily manually putting a user id. In the future it will get the user id from the post id
                         'organizationInfo/name');
-
+                    //Container to show preview of each post
                     return Container(
                         margin: EdgeInsets.symmetric(vertical: 5),
                         decoration: containerDecor,
@@ -166,6 +172,7 @@ class _existingListingsState extends State<existingListings> {
                           child:
                           Column(
                             children: [
+                              //Display relevant user information
                               FutureBuilder<String>(
                                 future: userInfoFuture,
                                 builder: (context, snapshot) {
@@ -193,6 +200,7 @@ class _existingListingsState extends State<existingListings> {
                                   }
                                 },
                               ),
+                              //Preview of the prepared meals available in the post
                               Align(
                                 alignment: Alignment.centerLeft,
                                 child: Text(
@@ -217,6 +225,7 @@ class _existingListingsState extends State<existingListings> {
 
 
                                     return ListTile(
+                                      //If there are prepared meals available, display them seperated with a ', ', otherwise display a red '--' indicator
                                       title: prepareds[0] == 'null' ? Text("--", style: mainFont.copyWith(fontSize: 16, color: Colors.red)) : Text(
                                         prepareds.join(', '),
                                         style: mainFont.copyWith(fontSize: 16),
@@ -226,6 +235,7 @@ class _existingListingsState extends State<existingListings> {
                                 },
                               ),
                               if (LoadedPosts.isNotEmpty)
+                                //Preview of perishables available in post
                                 Align(
                                   alignment: Alignment.centerLeft,
                                   child: Text(
@@ -248,6 +258,7 @@ class _existingListingsState extends State<existingListings> {
                                           snapshot.data?[0] ?? [];
 
                                       return ListTile(
+                                        //If there are perishables available, display them seperated with a ', ', otherwise display a red '--' indicator
                                         title: perishables[0] == 'null' ? Text("--", style: mainFont.copyWith(fontSize: 16, color: Colors.red)) : Text(
                                           perishables.join(', '),
                                           style: mainFont.copyWith(fontSize: 16),
@@ -257,6 +268,7 @@ class _existingListingsState extends State<existingListings> {
                                   },
                                 ),
                               if (LoadedPosts.isNotEmpty)
+                                //Preview of nonperishables available in post
                                 Align(
                                   alignment: Alignment.centerLeft,
                                   child: Text(
@@ -279,6 +291,7 @@ class _existingListingsState extends State<existingListings> {
                                           snapshot.data?[0] ?? [];
 
                                       return ListTile(
+                                        //If there are nonperishables available, display them seperated with a ', ', otherwise display a red '--' indicator
                                         title: nonPerishables[0] == 'null' ? Text("--", style: mainFont.copyWith(fontSize: 16, color: Colors.red)) : Text(
                                           nonPerishables.join(', '),
                                           style: mainFont.copyWith(fontSize: 16),
@@ -287,16 +300,18 @@ class _existingListingsState extends State<existingListings> {
                                     }
                                   },
                                 ),
+                              //See more information button
                               ElevatedButton(
                                 onPressed: () {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
+                                      //Direct user to the page with more information on the post
                                       builder: (context) => postPage(postID: LoadedPosts[index]),
                                     ),
                                   );
                                 },
                                 child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween, // Align children at the ends
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text("View Post", style: mainFont.copyWith(fontSize: 16, color: Colors.white, fontWeight: FontWeight.w900)),
                                     Icon(Icons.arrow_forward),
@@ -319,6 +334,7 @@ class _existingListingsState extends State<existingListings> {
     );
   }
 }
+//Page template for each post
 class postPage extends StatefulWidget {
   final String postID;
 
@@ -354,21 +370,21 @@ class _postPageState extends State<postPage> {
     setState(() {});
   }
   Future<List<List<String>>> retrieveFoodInformation(String id) async {
-    List<List<String>> foodInfo = [[], [], [], [], [], []]; // Added another list for quantities
-
+    List<List<String>> foodInfo = [[], [], [], [], [], []];
+    //Retrieve food names and quantities
     List<String> preparedMeals = await retrieveAll(id, 'Prepareds').then((value) => value[0]);
     List<String> preparedMealsQuantities = await retrieveAll(id, 'PreparedsQuantities').then((value) => value[0]);
     List<String> perishables = await retrieveAll(id, 'Perishables').then((value) => value[0]);
     List<String> perishablesQuantities = await retrieveAll(id, 'PerishablesQuantities').then((value) => value[0]);
     List<String> nonPerishables = await retrieveAll(id, 'NonPerishables').then((value) => value[0]);
     List<String> nonPerishablesQuantities = await retrieveAll(id, 'NonPerishablesQuantities').then((value) => value[0]);
-
+    //Store food names and quantities
     foodInfo[0] = preparedMeals;
     foodInfo[1] = perishables;
     foodInfo[2] = nonPerishables;
-    foodInfo[3] = preparedMealsQuantities; // Add prepared meals quantities
-    foodInfo[4] = perishablesQuantities; // Add perishables quantities
-    foodInfo[5] = nonPerishablesQuantities; // Add non-perishables quantities
+    foodInfo[3] = preparedMealsQuantities;
+    foodInfo[4] = perishablesQuantities;
+    foodInfo[5] = nonPerishablesQuantities;
 
     return foodInfo;
   }
@@ -418,6 +434,7 @@ class _postPageState extends State<postPage> {
                 style: mainFont.copyWith(fontSize: 20),
               ),
             ),
+            //Divider
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
               child: Divider(
@@ -426,6 +443,7 @@ class _postPageState extends State<postPage> {
                 height: 40,
               ),
             ),
+            //Toggleable section for displaying contact information
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 10),
               child:
@@ -511,6 +529,7 @@ class _postPageState extends State<postPage> {
               ),
             ),
             const SizedBox(height: 20),
+            //Toggleable section for displaying food information
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 10),
               child: Container(
@@ -661,7 +680,6 @@ class _postPageState extends State<postPage> {
               ),
             ),
 
-            // Black line for separation
 
           ],
         ),

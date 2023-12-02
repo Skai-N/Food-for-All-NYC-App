@@ -1,4 +1,5 @@
-
+//Page for filling out form about oganization information as well as information on the surplus food this organization holds.
+//Will potentially become integrated into an account setting later.
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -34,7 +35,7 @@ late String startDate;
 late String endDate;
 late String startTime;
 late String endTime;
-
+//Initial organization form.
 class organizationFormPage extends StatefulWidget {
   
   final String? selectedValue;
@@ -46,6 +47,7 @@ class _organizationFormPageState extends State<organizationFormPage> {
   late double nextElevation = 0;
   late String validEmail = "nothing";
   String? orgType;
+  //Options for selecting an organization type
   final typeItems = [
     'Restaurant',
     'Deli',
@@ -64,7 +66,7 @@ class _organizationFormPageState extends State<organizationFormPage> {
     super.initState();
     orgType = null; // Initially no option is selected
   }
-  
+  //Initialize text editing slots
   final addressController = TextEditingController();
   final emailController = TextEditingController();
   final nameController = TextEditingController();
@@ -105,7 +107,7 @@ class _organizationFormPageState extends State<organizationFormPage> {
               
             ),
             const SizedBox(height: 15, width: 50),
-            
+            //Drop down to select organization type
             Container(
               width: 300,
               height: 53,
@@ -148,6 +150,7 @@ class _organizationFormPageState extends State<organizationFormPage> {
               ),
             ),
             const SizedBox(height: 15, width: 50),
+            //Space to enter organizationaddress
             Container(
               
               width: 300,
@@ -160,6 +163,7 @@ class _organizationFormPageState extends State<organizationFormPage> {
                 decoration: InputDecoration(hintText: "Enter Organization Address", hintStyle: hintFont),
                 controller: addressController,
                 style: mainFont,
+                //When changed, enable the next button (button that allows you to move to the next page) if other organizations bits are valid
                 onChanged: (value){
                   setState(() {
                     if(
@@ -178,6 +182,7 @@ class _organizationFormPageState extends State<organizationFormPage> {
             )
                
             ),
+            //Place to enter organization name
             const SizedBox(height: 15, width: 50),
             Container(
               
@@ -191,6 +196,7 @@ class _organizationFormPageState extends State<organizationFormPage> {
                 decoration: InputDecoration(hintText: "Enter Organization Name", hintStyle: hintFont),
                 controller: orgNameController,
                 style: mainFont,
+                 //When changed, enable the next button (button that allows you to move to the next page) if other organizations bits are valid
                 onChanged: (value){
                   setState(() {
                     if(
@@ -209,12 +215,14 @@ class _organizationFormPageState extends State<organizationFormPage> {
                )
                
             ),
+            //Header for contact information
             const SizedBox(height: 15, width: 50),
             Column(children: [
               Text('Contact Information',
                     style: mainFont,
                     ),
               const SizedBox(height: 15, width: 50),
+              //Enter contact name
               Container(
                   width: 300,
                   height: 60,
@@ -225,6 +233,7 @@ class _organizationFormPageState extends State<organizationFormPage> {
                     decoration: InputDecoration(hintText: "Your Name", hintStyle: hintFont,),
                     controller: nameController,
                     style: mainFont,
+                    //When changed, enable the next button (button that allows you to move to the next page) if other organizations bits are valid
                     onChanged: (value){
                       setState(() {
                         if(
@@ -242,6 +251,7 @@ class _organizationFormPageState extends State<organizationFormPage> {
                     },
                   )
                 ),
+                //Enter contact/organization email
                 Padding(padding: const EdgeInsets.symmetric(vertical: 16),
                 child:
                   Container(
@@ -253,7 +263,9 @@ class _organizationFormPageState extends State<organizationFormPage> {
                     TextField(
                       decoration: InputDecoration(hintText: "Email", hintStyle: hintFont),
                       controller: emailController,
+                      //Validate that email inputted is in valid email form
                       style: validEmail == "valid" ? mainFont : mainFont.copyWith(color: Colors.red),
+                      //When changed, enable the next button (button that allows you to move to the next page) if other organizations bits are valid
                       onChanged: (value) {
                         setState(() {
                           validEmail = EmailValidator.validate(value) ? "valid" : "notvalid";
@@ -279,6 +291,7 @@ class _organizationFormPageState extends State<organizationFormPage> {
                     )
                   ),
                 ),
+                //Input contact/organization phone number
                 Container(
                   width: 300,
                   height: 60,
@@ -321,6 +334,7 @@ class _organizationFormPageState extends State<organizationFormPage> {
                   )
                 ),
                 const SizedBox(height: 15, width: 50),
+                //Button to continue to the next page
                 TextButton(
                   onPressed: (){
                     if(
@@ -367,14 +381,14 @@ class _organizationFormPageState extends State<organizationFormPage> {
     )));
   }
 }
-
+//Class for storing custom food items added
 class otherItemClass {
   String name;
   double quantity;
 
   otherItemClass({required this.name, required this.quantity});
 }
-
+//Form where organizations input the surplus food they have
 class FoodFormPage extends StatefulWidget {
   
   final String? selectedValue;
@@ -404,7 +418,7 @@ class _FoodFormPageState extends State<FoodFormPage> {
   late bool? deli;
   late bool? othermeat;
 
-  // DRY GOODS
+  // NON PERISHABLES
   late bool? dryfruits;
   late bool? pasta;
   late bool? rice;
@@ -422,7 +436,7 @@ class _FoodFormPageState extends State<FoodFormPage> {
   late bool? sandwich;
   late bool? salad;
 
-  // Controllers
+  // Controllers for food item quantities
   TextEditingController fruitsController = TextEditingController();
   TextEditingController vegetablesController = TextEditingController();
   TextEditingController dairyController = TextEditingController();
@@ -444,7 +458,7 @@ class _FoodFormPageState extends State<FoodFormPage> {
   TextEditingController frozenController = TextEditingController();
   TextEditingController sandwichController = TextEditingController();
   TextEditingController saladController = TextEditingController();
-
+  //Storing food item information
   List<String> fixedPerishables = ["Fresh Fruits", "Fresh Vegetables", "Dairy", "Poultry", "Fish", "Deli Meats", "Other Meat"];
   List<double?> fixedPerishableQuantities = [0, 0, 0, 0, 0, 0, 0];
   List<bool?> perishableBools = [];
@@ -522,7 +536,7 @@ class _FoodFormPageState extends State<FoodFormPage> {
     ];
   }
 
-
+  //Users can swipe between selecting Perishables, Nonperishables, and Prepareds with the PageController
   late PageController _pageController;
   int _currentPage = 0;
   late bool seenPage2 = false;
@@ -556,24 +570,25 @@ class _FoodFormPageState extends State<FoodFormPage> {
   }
   ThemeMode themeMode = ThemeMode.dark;
   bool useMaterial3 = true;
+  //Variables for selecting a time when another party can come pick up the food
   DateTime? selectedDateFrom;
   DateTime? selectedDateTo;
   TimeOfDay? selectedTimeFrom;
   TimeOfDay? selectedTimeTo;
+  //Function to select pick up times
   Future<void> _selectDate(BuildContext context, bool isFrom) async {
     final DateTime? selectedDate = await showDatePicker(
       context: context,
+      //Validate that the lower bound on pick up time range is earlier than the upper bound
       initialDate: isFrom ? selectedDateFrom ?? DateTime.now() : selectedDateTo ?? DateTime.now(),
       firstDate: DateTime.now(),
       lastDate: DateTime(DateTime.now().year + 3),
       builder: (BuildContext context, Widget? child) {
         return Theme(
           data: ThemeData(
-            // Customize the date picker theme
-            primaryColor: const Color.fromARGB(255, 255, 255, 255), // Change the primary color// Change the accent color
-            dialogBackgroundColor: Colors.white, // Change the dialog background color
+            primaryColor: const Color.fromARGB(255, 255, 255, 255),
+            dialogBackgroundColor: Colors.white,
             textTheme: TextTheme(
-              // Apply your custom font to the date picker text styles
               displayLarge: mainFont.copyWith(fontSize: 16),
               displayMedium: mainFont.copyWith(fontSize: 16),
               displaySmall: mainFont.copyWith(fontSize: 16),
@@ -602,6 +617,7 @@ class _FoodFormPageState extends State<FoodFormPage> {
       });
     }
   }
+  //Function to select time (of day) for pick up range
   Future<void> _selectTime(BuildContext context, bool isFrom) async {
     final TimeOfDay? selectedTime = await showTimePicker(
       context: context,
@@ -644,7 +660,7 @@ class _FoodFormPageState extends State<FoodFormPage> {
       });
     }
   }
-
+  //nextEnabled checks if all the information inputed is valid to continue to the confirmation page
   bool nextEnabled(){
     bool response = false;
     if(selectedTimeTo == null || selectedTimeFrom == null || selectedDateFrom == null || selectedDateTo == null){
@@ -661,7 +677,7 @@ class _FoodFormPageState extends State<FoodFormPage> {
     if(DateTime.now().copyWith(hour: selectedTimeTo!.hour, minute: selectedTimeTo!.minute).isBefore(DateTime.now().copyWith(hour: selectedTimeFrom!.hour, minute: selectedTimeFrom!.minute))){
       return false;
     }
-    if(seenPage2 & seenPage3){
+    if(seenPage2 & seenPage3) {
       for (var boool in perishableBools){
         if(boool == true){
           if(fixedPerishableQuantities[perishableBools.indexOf(boool)] != 0.0){
@@ -672,6 +688,7 @@ class _FoodFormPageState extends State<FoodFormPage> {
           }
         }
       }
+      //Check that each item selected has a quantity > 0.0
       for (var boool in preparedBools){
         if(boool == true){
           if(fixedPreparedQuantities[preparedBools.indexOf(boool)] != 0.0){
@@ -724,7 +741,7 @@ class _FoodFormPageState extends State<FoodFormPage> {
   }
   
   late String foodType = "Prepared Meals";
-
+  //Template for custom added food items
   Widget otherColumn(List<otherItemClass> group){
     return Column(
       children: <Widget>[
@@ -821,6 +838,7 @@ class _FoodFormPageState extends State<FoodFormPage> {
     ],
   );
   }
+  //Button to add custom food items
   Widget otherButton(TextEditingController controller, bool enabled,List<otherItemClass> group){
     return Container(
       decoration: const BoxDecoration(
@@ -896,6 +914,7 @@ class _FoodFormPageState extends State<FoodFormPage> {
       )
     );
   }
+  //Creates a tile for each food item with a checkbox to indicate that the organization has a food and a textfield to enter the food quantity.
   Widget buildContainerWithCheckboxAndTextField(
     String title,
     bool? checkboxValue,
@@ -975,6 +994,7 @@ class _FoodFormPageState extends State<FoodFormPage> {
     ),
   );
 }
+//Actual UI for food information
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -1120,6 +1140,7 @@ class _FoodFormPageState extends State<FoodFormPage> {
               ],
             ),
             const SizedBox(height: 25),
+            //Container for selecting a pick up range
             Expanded(
               flex: 1,
               child: 
@@ -1244,6 +1265,7 @@ class _FoodFormPageState extends State<FoodFormPage> {
               )
               ),
             const SizedBox(height:20),
+            //Confirm all food selections and add them to final lists with their quantity
             ElevatedButton(onPressed: nextEnabled() ? (){
               
               for(var item in fixedPrepared){
@@ -1330,6 +1352,7 @@ class _FoodFormPageState extends State<FoodFormPage> {
     ));
   }
 }
+//Confirmation page before creating the post
 class ConfirmationPage extends StatefulWidget {
   const ConfirmationPage({Key? key}) : super(key: key);
 
@@ -1566,6 +1589,7 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
                               
                               ElevatedButton(
                                 onPressed: () {
+                                  //Create the actual post
                                   Post newPost = Post(
                                     orgType: typeOfOrganization,
                                     orgAdd: addressOfOrganization,
@@ -1615,7 +1639,7 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
       ),
     );
   }
-
+//Template fields for making last second changes to information.
   Widget _buildEditableField(String label, String value, TextEditingController controller, bool isEditing) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

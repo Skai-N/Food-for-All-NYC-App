@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
+//It says "Sidebar", but this is the pop up from the bottom of the screen when clicking on a marker for more information
 void buildSidebar(BuildContext context, int markerId) {
   markerId -= 1;
   final name = markerData[markerId][0];
@@ -30,7 +31,7 @@ void buildSidebar(BuildContext context, int markerId) {
               style: const TextStyle(fontWeight: FontWeight.w400, fontSize: 15, color: Color.fromARGB(255, 126, 126, 126)),
             ),
             const Padding(
-              padding: EdgeInsets.all(0), //apply padding to all four sides
+              padding: EdgeInsets.all(0),
               child:
               Text(
                 "..............................................",
@@ -38,13 +39,14 @@ void buildSidebar(BuildContext context, int markerId) {
                 style: TextStyle(fontSize: 25, fontWeight: FontWeight.w900, color: Color.fromRGBO(73,17,129,1)),
               ),
             ),
+            //Display open times
             const Text(
               "OPEN",
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Color.fromRGBO(73,17,129,1)),
             ),
             Padding(
-              padding: const EdgeInsets.all(0), //apply padding to all four sides
+              padding: const EdgeInsets.all(0),
               child:
               Text(
                 "$openmonth -- $openday",
@@ -53,7 +55,7 @@ void buildSidebar(BuildContext context, int markerId) {
               ),
             ),
             const Padding(
-              padding: EdgeInsets.all(0), //apply padding to all four sides
+              padding: EdgeInsets.all(0),
               child:
               Text(
                 "..............................................",
@@ -61,6 +63,7 @@ void buildSidebar(BuildContext context, int markerId) {
                 style: TextStyle(fontSize: 25, fontWeight: FontWeight.w900, color: Color.fromRGBO(73,17,129,1)),
               ),
             ),
+            //Display any available notes
             const Text(
               "NOTES",
               textAlign: TextAlign.center,
@@ -84,6 +87,7 @@ void buildSidebar(BuildContext context, int markerId) {
                 style: TextStyle(fontSize: 25, fontWeight: FontWeight.w900, color: Color.fromRGBO(73,17,129,1)),
               ),
             ),
+            //Display website (Google sometimes returns a social media handle)
             const Text(
               "WEBSITE",
               textAlign: TextAlign.center,
@@ -106,7 +110,7 @@ void buildSidebar(BuildContext context, int markerId) {
   );
 }
 
-
+//Actual map page
 class ScrapMapPage extends StatefulWidget {
   const ScrapMapPage({super.key});
   @override
@@ -114,6 +118,7 @@ class ScrapMapPage extends StatefulWidget {
 }
 class _ScrapMapPageState extends State<ScrapMapPage> {
   late String _mapStyle;
+  //Cosmetic map style
   @override
   void initState() {
     super.initState();
@@ -122,6 +127,7 @@ class _ScrapMapPageState extends State<ScrapMapPage> {
     });
   }
   late GoogleMapController mapController;
+  //Center the camera in NYC
   final LatLng _center = const LatLng(40.7128, -74.0060);
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
@@ -151,6 +157,7 @@ class _ScrapMapPageState extends State<ScrapMapPage> {
             target: _center,
             zoom: 12.0,
           ),
+          //Marker code created from Python from parsing through NY Open Data.
           markers: <Marker>{
             Marker(
               markerId: const MarkerId("1"),
@@ -3997,7 +4004,7 @@ class _ScrapMapPageState extends State<ScrapMapPage> {
     );
   }
 }
-
+//markerData created from Python from parsing through NY Open Data
 List<List<String>> markerData = [
   ["Jackson Heights Greenmarket", "79th St and Northern Blvd", "GrowNYC", "Year Round", "Sundays (Start Time: 8:30 AM - End Time:  2:00 PM)", "Not accepted: meat, bones, or dairy", "grownyc.org/compost"],
   ["Aberdeen Community Garden", "91 Aberdeen St, Brooklyn, 11207", "BK Rot", "Year Round", "Sundays (Start Time: 1:00 PM - End Time:  4PM (Dec-Feb), 5PM (Mar.-Nov.))", "Not accepted: meat, bones, or dairy", "www.bkrot.org"],

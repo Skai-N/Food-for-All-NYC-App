@@ -1,3 +1,6 @@
+//With the user of a bottom bar, this page is likely no longer necessary.
+//This page served as a placeholder way to get into the listings display.
+
 import 'organization.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
