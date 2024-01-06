@@ -1,13 +1,9 @@
-//Main map for searching for food
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_places_for_flutter/google_places_for_flutter.dart';
 import 'package:google_maps_webservice/places.dart';
 import 'dart:async';
-import 'package:flutter_polyline_points/flutter_polyline_points.dart' as poly;
-import 'package:ffa_app/screens/needExistList.dart';
 
 final places = GoogleMapsPlaces(apiKey: '');
 
@@ -16,13 +12,13 @@ Future<List<PlacesSearchResult>> fetchNearbyPlaces(double lat, double lng, int r
     Location(lat: lat, lng: lng),
     radius,
     keyword: type,
-    type: "food"
+    //type: "food" 
   );
 
   if (response.isOkay) {
     return response.results;
   } else {
-    throw response.errorMessage!;
+    return [];
   }
 }
 Future<PlaceDetails> getPlaceDetails(PlacesSearchResult place) async {
@@ -33,7 +29,6 @@ Future<PlaceDetails> getPlaceDetails(PlacesSearchResult place) async {
     final placeDetails = response.result;
     return placeDetails;
   } else {
-
     throw response.errorMessage!;
   }
 
@@ -73,27 +68,23 @@ String getAddress(PlaceDetails placeDetails) {
     return '';
   }
 }
+
 class NeedFoodPage extends StatefulWidget {
-
-  final String? selectedValue;
-
-
-  const NeedFoodPage({Key? key, this.selectedValue}) : super(key: key);
+  const NeedFoodPage({Key? key}) : super(key: key);
   @override
   State<NeedFoodPage> createState() => _NeedFoodPageState();
-
 }
 class _NeedFoodPageState extends State<NeedFoodPage> {
-  poly.PolylinePoints polylinePoints = poly.PolylinePoints();
-  Map<PolylineId, Polyline> polylines = {};
+
+  Set<Circle> circles = {}; 
+
 
   final FocusNode _focusNode = FocusNode();
   bool _isExpanded = true;
   bool _pantries = false;
   bool _fridges = false;
-  bool _soup = false;
-  final bool _foodBank = false;
-  double _radius = 500;
+  bool _kitchens = false;
+  double _radius = 1000;
   late LatLng currLoc;
   late String _mapStyle;
   final myController = TextEditingController();
@@ -103,7 +94,6 @@ class _NeedFoodPageState extends State<NeedFoodPage> {
 
     @override
     void dispose() {
-    // Clean up the controller when the widget is disposed.
     myController.dispose();
     super.dispose();
   }
@@ -115,43 +105,8 @@ class _NeedFoodPageState extends State<NeedFoodPage> {
     rootBundle.loadString('lib/assets/map_style.txt').then((string) {
       _mapStyle = string;
     });
-    if (widget.selectedValue == 'See food pantry locations') {
-      _pantries = true;
-    } else if (widget.selectedValue == 'See community fridge locations') {
-      _fridges = true;
-    } else if (widget.selectedValue == 'See soup kitchen locations') {
-      _soup = true;
-    }
   }
-  getDirections(LatLng startLocation, LatLng endLocation) async {
-      List<LatLng> polylineCoordinates = [];
-
-      poly.PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
-          googleAPiKey,
-          poly.PointLatLng(startLocation.latitude, startLocation.longitude),
-          poly.PointLatLng(endLocation.latitude, endLocation.longitude),
-          travelMode: poly.TravelMode.walking,
-      );
-
-      if (result.points.isNotEmpty) {
-            for (var point in result.points) {
-                polylineCoordinates.add(LatLng(point.latitude, point.longitude));
-            }
-      }
-      addPolyLine(polylineCoordinates);
-  }
-
-  addPolyLine(List<LatLng> polylineCoordinates) {
-    PolylineId id = const PolylineId("poly");
-    Polyline polyline = Polyline(
-      polylineId: id,
-      color: const Color.fromARGB(255, 255, 0, 0),
-      points: polylineCoordinates,
-      width: 3,
-    );
-    polylines[id] = polyline;
-    setState(() {});
-  }
+  
   late GoogleMapController mapController;
   final LatLng _center = const LatLng(40.7128, -74.0060);
   void _onMapCreated(GoogleMapController controller) {
@@ -160,67 +115,51 @@ class _NeedFoodPageState extends State<NeedFoodPage> {
   }
 
   void _updateMarkers() async{
-    // Clear existing markers
-    setState(() {
-      _markers = {Marker(
-        markerId: const MarkerId("currentLocation"),
-        position: currLoc,
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueYellow),
-        infoWindow: const InfoWindow(title: "Your Location")
-      ),};
-    });
-
+    List<PlacesSearchResult> pantries = [];
+    List<PlacesSearchResult> fridges = [];
+    List<PlacesSearchResult> kitchens = [];
+   
     if (_pantries) {
-      // Add markers for food pantries
-
-      final pantries = await fetchNearbyPlaces(currLoc.latitude, currLoc.longitude, _radius.toInt(), "food pantry");
+      pantries += await fetchNearbyPlaces(currLoc.latitude, currLoc.longitude, _radius.toInt(), "food pantry");
       for (final place in pantries){
         setState(() {
           place.types.add('food_pantry');
         });
       }
-      _addMarkersFromPlaces(pantries);
-
     }
-
     if (_fridges) {
-      // Add markers for community fridges
-
-      final pantries = await fetchNearbyPlaces(currLoc.latitude, currLoc.longitude, _radius.toInt(), "community fridge");
-      for (final place in pantries){
+      fridges += await fetchNearbyPlaces(currLoc.latitude, currLoc.longitude, _radius.toInt(), "community fridge");
+      for (final place in fridges){
         setState(() {
           place.types.add('community_fridge');
         });
       }
-      _addMarkersFromPlaces(pantries);
     }
 
-    if (_soup) {
-      // Add markers for soup kitchens
-      final pantries = await fetchNearbyPlaces(currLoc.latitude, currLoc.longitude, _radius.toInt(), "soup kitchen");
-      for (final place in pantries){
+    if (_kitchens) {
+      kitchens += await fetchNearbyPlaces(currLoc.latitude, currLoc.longitude, _radius.toInt(), "soup kitchen");
+      for (final place in kitchens){
         setState(() {
           place.types.add('soup_kitchen');
         });
       }
-      _addMarkersFromPlaces(pantries);
     }
-    if (_foodBank) {
-
-      final pantries = await fetchNearbyPlaces(currLoc.latitude, currLoc.longitude, _radius.toInt(), "food bank");
-      for (final place in pantries){
-        setState(() {
-          place.types.add('food_bank');
-        });
-      }
-      _addMarkersFromPlaces(pantries);
-    }
+     setState(() { _markers = {}; });
+    _addMarkersFromPlaces(pantries + fridges + kitchens);
+    // if (_foodBank) {
+    //   final pantries = await fetchNearbyPlaces(currLoc.latitude, currLoc.longitude, _radius.toInt(), "food bank");
+    //   for (final place in pantries){
+    //     setState(() {
+    //       place.types.add('food_bank');
+    //     });
+    //   }
+    //   _addMarkersFromPlaces(pantries);
+    // }
   }
   void _addMarkersFromPlaces(List<PlacesSearchResult> placesList) {
   for (final place in placesList) {
     BitmapDescriptor markerIcon;
     late String type;
-    // Set different marker icons based on the keyword used
     if(place.name.toLowerCase().contains('pantry')){
       markerIcon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen);
       type = "pantry";
@@ -288,25 +227,6 @@ class _NeedFoodPageState extends State<NeedFoodPage> {
                         ),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Center(
-
-                        child: ElevatedButton(
-                          onPressed: (){
-                            _isExpanded = false;
-                            getDirections(currLoc,
-                                          LatLng(
-                                            place.geometry!.location.lat,
-                                            place.geometry!.location.lng,
-                                          ),
-                             );
-                          },
-                          child: const Text('Show Route')
-                          )
-                        )
-                    ),
-
                   ],
                 ),
               );
@@ -325,10 +245,7 @@ class _NeedFoodPageState extends State<NeedFoodPage> {
       if(type == "fridge" && !_fridges){
         addit = false;
       }
-      if(type == "soup" && !_soup){
-        addit = false;
-      }
-      if(type == "bank" && !_foodBank){
+      if(type == "soup" && !_kitchens){
         addit = false;
       }
       if(addit){
@@ -337,201 +254,171 @@ class _NeedFoodPageState extends State<NeedFoodPage> {
     });
   }
 }
-  int _selectedIndex = 0;
 
-  static const List<Widget> _widgetOptions = <Widget>[
-    Text('Maps'),
-    Text('Show Listings'),
-    Icon(Icons.add),
-    Text('Account'),
-  ];
   @override
-  //Actual Map UI Starts Here---------------
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme: ThemeData(
-
-        colorSchemeSeed: const Color.fromARGB(255, 225, 102, 102),
-      ),
       debugShowCheckedModeBanner: false,
       home: Scaffold(
         body: Stack(
           children: <Widget>[
             const SizedBox(width: 20, height: 20),
-            //Map
-            Focus(
-              focusNode: _focusNode,
-              child: GoogleMap(
-                polylines: Set<Polyline>.of(polylines.values),
-                onMapCreated: _onMapCreated,
-                zoomGesturesEnabled: true,
-                minMaxZoomPreference: const MinMaxZoomPreference(1, 20),
-                initialCameraPosition: CameraPosition(
-                  target: _center,
-                  zoom: 12.0,
-                ),
-                markers: _markers,
-              ),
-            ),
-
+            map(),
             Padding(
               padding: const EdgeInsets.only(top: 30),
               child: Column(
                 children: [
-                  //Search Bar
-                  Container(
-                    height: 60,
-
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(50),
-                          child:
-                          Material(
-                            elevation: 15,
-                          child:
-                          SearchGooglePlacesWidget(
-                            placeType: PlaceType.region,
-                            placeholder: 'Find locations near this address',
-                            apiKey: '',
-                            onSearch: (Place place) {},
-                            onSelected: (Place place) async {
-                              final geolocation = await place.geolocation;
-                              setState(() {
-                                currLoc = LatLng(geolocation!.coordinates.latitude, geolocation.coordinates.longitude);
-                              });
-                            },
-                          ),
-                        ),
-
-
-                        )
-                        ],
-                      ),
-                    ),
-                  ),
-                  //Buttons to select from Pantries, Kitchens, Fridges
+                  searchBar(),
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: Row(
                       children: <Widget>[
-                        Expanded(
-                          child:
-
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-
-                              backgroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20.0),
-                              ),
-                              side:
-                                BorderSide(
-                                  color: const Color.fromARGB(255, 0, 210, 25),
-                                  width: 1.0,
-                                ),
-
-                            ),
-                            onPressed: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                  const NeedFoodPage(selectedValue: "See food pantry locations"),
-                                ),
-                              );
-                            },
-                            child: const Text(
-                              'Pantries',
-                              style: TextStyle(
-                                color: Colors.green,
-                              ),
-                            ),
-                          ),
-
-                        ),
+                        showResourceLocationsButton("pantry"),
                         const SizedBox(width: 16.0),
-                        Expanded(
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-
-                              backgroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20.0),
-                              ),
-                              side:
-                              BorderSide(
-                                color: const Color.fromARGB(255, 31, 52, 213),
-                                width: 1.0,
-                              ),
-
-                            ),
-                            onPressed: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => const NeedFoodPage(
-                                      selectedValue: "See community fridge locations"),
-                                ),
-                              );
-                            },
-                            child: const Text(
-                              'Fridges',
-                              style: TextStyle(
-                                color: const Color.fromARGB(255, 31, 52, 213),
-                              ),
-                            ),
-                          ),
-                        ),
+                        showResourceLocationsButton("fridge"),
                         const SizedBox(width: 16.0),
-                        Expanded(
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-
-                              backgroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20.0),
-                              ),
-                              side:
-                              BorderSide(
-                                color: const Color.fromARGB(255, 195, 24, 24),
-                                width: 1.0,
-                              ),
-
-                            ),
-                            onPressed: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => const NeedFoodPage(
-                                      selectedValue: "See soup kitchen locations"),
-                                ),
-                              );
-                            },
-                            child: const Text(
-                              'Kitchens',
-                              style: TextStyle(
-                                color: const Color.fromARGB(255, 195, 24, 24),
-                              ),
-                            ),
-                          ),
-                        ),
+                        showResourceLocationsButton("kitchen"),
                       ],
                     ),
                   ),
-
                 ],
-
               ),
             ),
           ],
         ),
-
-
       ),
+    );
+  }
+  Widget map(){
+    return Focus(
+      focusNode: _focusNode,
+      child: GoogleMap(
+        onMapCreated: _onMapCreated,
+        zoomGesturesEnabled: true, 
+        minMaxZoomPreference: const MinMaxZoomPreference(1, 20),
+        initialCameraPosition: CameraPosition(
+          target: _center,
+          zoom: 12.0,
+        ),
+        markers: _markers,
+        circles: circles,
+      ),
+    );
+  }
+  Widget searchBar(){
+    return Container(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(50),
+              child:
+              Material(
+                elevation: 15,
+                child:
+                SearchGooglePlacesWidget(
+                  placeType: PlaceType.region,
+                  placeholder: 'Find locations near this address',
+                  apiKey: '',
+                  onSearch: (Place place) {},
+                  onSelected: (Place place) async {
+                    final geolocation = await place.geolocation;
+                    
+                    setState(() {
+                      currLoc = LatLng(geolocation!.coordinates.latitude, geolocation.coordinates.longitude);
+                      circles = Set.from([Circle(
+                        circleId: CircleId("location"),
+                        center: currLoc,
+                        radius: _radius + 1000,
+                        fillColor: Color.fromARGB(62, 247, 231, 0),
+                        strokeColor: Color.fromARGB(255, 255, 209, 2),
+                        strokeWidth: 1,
+                    )]);
+                    });
 
+                    _updateMarkers();
+                  },
+                ),
+              ),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+  Widget showResourceLocationsButton(String type){
+    Color color;
+    Color backgroundColor;
+    String name;
+    double elevation;
+    if(type == "pantry"){
+      color = const Color.fromARGB(255, 0, 210, 25);
+      name = "Pantries";
+      if(_pantries){
+        elevation = 0;
+        backgroundColor = Color.fromARGB(225, 219, 219, 219);
+      } else{
+        elevation = 10;
+        backgroundColor = Colors.white;
+      }
+    } else if(type == "fridge"){
+      color = const Color.fromARGB(255, 31, 52, 213);
+      name = "Fridges";
+      if(_fridges){
+        elevation = 0;
+        backgroundColor = Color.fromARGB(225, 219, 219, 219);
+      } else{
+        elevation = 10;
+        backgroundColor = Colors.white;
+      }
+    } else{
+      color = const Color.fromARGB(255, 195, 24, 24);
+      name = "Kitchens";
+      if(_kitchens){
+        elevation = 0;
+        backgroundColor = Color.fromARGB(225, 219, 219, 219);
+      } else{
+        elevation = 10;
+        backgroundColor = Colors.white;
+      }
+    }
+    return Expanded(
+      child:
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            elevation: elevation,
+            backgroundColor: backgroundColor,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20.0), 
+            ),
+            side:
+              BorderSide(
+                color: color, 
+                width: 1.0,
+              ),
+          ),
+          onPressed: () {
+            setState(() {
+              if(type == "pantry"){
+                _pantries = !_pantries;
+              } else if(type == "fridge"){
+                _fridges = !_fridges;
+              } else{
+                _kitchens = !_kitchens;
+              }
+            });
+            _updateMarkers();
+          },
+          child: Text(
+            name,
+            style: TextStyle(
+              color: color, 
+            ),
+          ),
+        ),
     );
   }
 }
