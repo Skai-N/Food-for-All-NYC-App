@@ -907,7 +907,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       onChanged: (String? newValue) {
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (context) => NeedFoodPage(selectedValue: newValue),
+                            builder: (context) => NeedFoodPage(),
                           ),
                         );
                       },
